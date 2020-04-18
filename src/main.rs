@@ -11,7 +11,7 @@ extern crate serde_json;
 extern crate ureq;
 extern crate url;
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-use rocket::response::Redirect;
+use rocket::Request;
 use rocket_contrib::templates::Template;
 use url::form_urlencoded;
 
@@ -55,9 +55,9 @@ struct MessageContent {
   json: Vec<Bindings>,
 }
 
-#[get("/")]
-fn index() -> Redirect {
-  Redirect::to(uri!(get_data: subject = "Ichikawa_Hinana"))
+#[catch(404)]
+fn not_found(_req: &Request) -> String {
+  format!("No result: ")
 }
 
 #[get("/<subject>")]
@@ -111,8 +111,9 @@ fn get_data(subject: String) -> Template {
 
 fn rocket() -> rocket::Rocket {
   rocket::ignite()
-    .mount("/", routes![index, get_data])
+    .mount("/", routes![get_data])
     .attach(Template::fairing())
+    .register(catchers![not_found])
 }
 
 fn main() {
