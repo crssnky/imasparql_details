@@ -12,3 +12,4 @@ serde_json = "*"
 serde_derive = "*"
 ureq = { version = "*", features = ["json"] }
 url = "2.1.0"
+percent-encoding = "2.1.0"
