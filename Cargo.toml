@@ -6,4 +6,9 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.4"
-rocket_codegen = "*"
+rocket_codegen = "0.4.4"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+ureq = { version = "*", features = ["json"] }
+url = "2.1.0"
