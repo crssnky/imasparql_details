@@ -2,6 +2,7 @@
 
 #[macro_use]
 extern crate rocket;
+extern crate rocket_contrib;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -10,14 +11,16 @@ extern crate serde_json;
 extern crate ureq;
 extern crate url;
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+use rocket::response::Redirect;
+use rocket_contrib::templates::Template;
 use url::form_urlencoded;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct N {
   r#type: String,
   value: String,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct O {
   r#type: String,
   #[serde(default)]
@@ -26,7 +29,7 @@ struct O {
   xml_lang: String,
   value: String,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Bindings {
   n: N,
   o: O,
@@ -44,9 +47,21 @@ struct Response {
   head: Head,
   results: Results,
 }
+#[derive(Serialize)]
+struct MessageContent {
+  is_idol: bool,
+  title: String,
+  num: usize,
+  json: Vec<Bindings>,
+}
+
+#[get("/")]
+fn index() -> Redirect {
+  Redirect::to(uri!(get_data: subject = "Ichikawa_Hinana"))
+}
 
 #[get("/<subject>")]
-fn get_data(subject: String) -> String {
+fn get_data(subject: String) -> Template {
   const FRAGMENT: &AsciiSet = &CONTROLS;
   let encoded_subject = utf8_percent_encode(&subject, FRAGMENT).to_string();
   let quety = format!("PREFIX schema: <http://schema.org/>PREFIX imas: <https://sparql.crssnky.xyz/imasrdf/RDFs/detail/>SELECT * WHERE {{ imas:{} ?n ?o;}}order by (?n)", encoded_subject);
@@ -60,18 +75,46 @@ fn get_data(subject: String) -> String {
     encoded_query
   );
   let res = ureq::get(&base_url).call();
-  println!("{}", base_url);
 
   if res.ok() {
     let json_str = res.into_string().unwrap();
     let res_json: Response = serde_json::from_str(&json_str).unwrap();
-    if res_json.results.bindings.len() > 0 {
-      return format!("You want to know {}\n{}", subject, json_str);
+    let json = res_json.results.bindings;
+    let json_num = json.len();
+    if json_num > 0 {
+      let mut is_idol = false;
+      for data in &json {
+        if &*(data.n.value) == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+          && &*(data.o.value) == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Idol"
+        {
+          is_idol = true;
+          break;
+        }
+      }
+      let content = MessageContent {
+        is_idol: is_idol,
+        title: subject,
+        num: json_num,
+        json: json,
+      };
+      return Template::render("detail", &content);
     }
   }
-  format!("No result")
+  let content = MessageContent {
+    is_idol: false,
+    title: subject,
+    num: 0,
+    json: vec![],
+  };
+  Template::render("error", &content)
+}
+
+fn rocket() -> rocket::Rocket {
+  rocket::ignite()
+    .mount("/", routes![index, get_data])
+    .attach(Template::fairing())
 }
 
 fn main() {
-  rocket::ignite().mount("/", routes![get_data]).launch();
+  rocket().launch();
 }

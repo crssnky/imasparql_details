@@ -13,3 +13,8 @@ serde_derive = "*"
 ureq = { version = "*", features = ["json"] }
 url = "2.1.0"
 percent-encoding = "2.1.0"
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["tera_templates"]

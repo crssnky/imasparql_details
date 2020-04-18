@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-51356556-8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-51356556-8');
+  </script>
+  <title>
+    {{title}} detail
+  </title>
+  <link async="" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <script defer="" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script defer="" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+  <style>
+    div {
+      color: black;
+      text-align: center;
+    }
+
+    .tabbb {
+      width: 33%;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>
+    {{title}} detail
+  </h1>
+  <ul class="nav nav-tabs">
+    <li role="presentation" class="active tabbb"><a href="#Profile" data-toggle="tab">Profile</a></li>
+    {% for data in json %}
+    {% if data.n.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" and data.o.value == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Idol"%}
+    <li role="presentation" class="tabbb"><a href="#Units" data-toggle="tab">Units</a></li>
+    <li role="presentation" class="tabbb"><a href="#Clothes" data-toggle="tab">Clothes</a></li>
+    {% endif %}
+    {% endfor%}
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane active" id="Profile">
+      <table class="table table-hover" style="text-align:center">
+        <tr>
+          <th style="text-align:center">語彙</th>
+          <th style="text-align:center">型</th>
+          <th style="text-align:center">内容</th>
+        </tr>
+        <tbody>
+          {% for value in json %}
+          {% if value.n.value!="http://schema.org/memberOf" and value.n.value!="http://schema.org/owns" %}
+          <tr>
+            <td><a href="{{value.n.value}}">{{value.n.value}}</a></td>
+            {% if value.o.datatype!="" %}
+            <td id="o_{{loop.index0}}">{{value.o.datatype}}</td>
+            {% elif value.o["xml:lang"]!="" %}
+            <td id="o_{{loop.index0}}">{{value.o["xml:lang"]}}</td>
+            {% elif value.o.type=="uri" %}
+            <td id="o_{{loop.index0}}">URI</td>
+            {% else %}
+            <td id="o_{{loop.index0}}">http://www.w3.org/2001/XMLSchema#string</td>
+            {% endif %}
+
+            <td id="n_{{loop.index0}}">{{value.o.value}} </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-pane" id="Units">
+      <table class="table table-hover" style="text-align:center">
+        <tr>
+          <th style="text-align:center">語彙</th>
+          <th style="text-align:center">Unit Name</th>
+        </tr>
+        <tbody>
+          {% for value in json %}
+          {% if value.n.value=="http://schema.org/memberOf" %}
+          <tr>
+            <td>
+              <a href="{{value.n.value}}">{{value.n.value}}</a>
+            </td>
+            <td>
+              <a href="{{value.o.value}}">{{value.o.value}}</a>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-pane" id="Clothes">
+      <table class="table table-hover" style="text-align:center">
+        <tr>
+          <th style="text-align:center">語彙</th>
+          <th style="text-align:center">衣装名</th>
+        </tr>
+        <tbody>
+          {% for value in json %}
+          {% if value.n.value=="http://schema.org/owns" %}
+          <tr>
+            <td>
+              <a href="{{value.n.value}}">{{value.n.value}}</a>
+            </td>
+            <td>
+              <a href="{{value.o.value}}">{{value.o.value}}</a>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    onload = function () {
+      for (var i = 0; i < {{num}}; i++) {
+        var o = document.getElementById("o_" + i);
+        var n = document.getElementById("n_" + i);
+        if (o) {
+          if (o.innerHTML.match(/http/)) {
+            var txt = o.innerHTML;
+            o.innerHTML = "<a href='" + txt + "'>" + txt + "</a>";
+          }
+        }
+        if (n) {
+          if (n.innerHTML.match(/http/)) {
+            var txt = n.innerHTML;
+            n.innerHTML = "<a href='" + txt + "'>" + txt + "</a>";
+          }
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>
