@@ -68,8 +68,18 @@
             {% else %}
             <td id="o_{{loop.index0}}">http://www.w3.org/2001/XMLSchema#string</td>
             {% endif %}
-
+            {% if value.n.value=="https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Color" %}
+            <td id="n_{{loop.index0}}">
+              <div class="row">
+                <div class="col-xs-6" style="text-align:right;">
+                  {{value.o.value}}
+                </div>
+                <div class="col-xs-6" style="background-color:#{{value.o.value}};height:20px;"></div>
+              </div>
+            </td>
+            {% else %}
             <td id="n_{{loop.index0}}">{{value.o.value}} </td>
+            {% endif %}
           </tr>
           {% endif %}
           {% endfor %}
