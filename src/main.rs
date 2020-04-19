@@ -10,7 +10,7 @@ extern crate percent_encoding;
 extern crate serde_json;
 extern crate ureq;
 extern crate url;
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use rocket::Request;
 use rocket_contrib::templates::Template;
 use url::form_urlencoded;
@@ -49,7 +49,6 @@ struct Response {
 }
 #[derive(Serialize)]
 struct MessageContent {
-  is_idol: bool,
   title: String,
   num: usize,
   json: Vec<Bindings>,
@@ -79,20 +78,27 @@ fn get_data(subject: String) -> Template {
   if res.ok() {
     let json_str = res.into_string().unwrap();
     let res_json: Response = serde_json::from_str(&json_str).unwrap();
-    let json = res_json.results.bindings;
+    let mut json = res_json.results.bindings;
     let json_num = json.len();
     if json_num > 0 {
-      let mut is_idol = false;
-      for data in &json {
-        if &*(data.n.value) == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-          && &*(data.o.value) == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Idol"
-        {
-          is_idol = true;
-          break;
+      for data in &mut json {
+        match &*(data.n.value) {
+          "http://schema.org/memberOf" => {
+            data.o.value = percent_decode(data.o.value.as_bytes())
+              .decode_utf8()
+              .unwrap()
+              .to_string();
+          }
+          "http://schema.org/owns" => {
+            data.o.value = percent_decode(data.o.value.as_bytes())
+              .decode_utf8()
+              .unwrap()
+              .to_string();
+          }
+          _ => (),
         }
       }
       let content = MessageContent {
-        is_idol: is_idol,
         title: subject,
         num: json_num,
         json: json,
@@ -101,7 +107,6 @@ fn get_data(subject: String) -> Template {
     }
   }
   let content = MessageContent {
-    is_idol: false,
     title: subject,
     num: 0,
     json: vec![],
