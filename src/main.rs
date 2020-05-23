@@ -59,9 +59,26 @@ fn not_found(_req: &Request) -> String {
   format!("No result: ")
 }
 
-#[get("/<subject>")]
-fn get_data(subject: String) -> Template {
-  const FRAGMENT: &AsciiSet = &CONTROLS;
+fn get_json(subject: &String) -> Vec<Bindings> {
+  const FRAGMENT: &AsciiSet = &CONTROLS // http://www.asahi-net.or.jp/~ax2s-kmtn/ref/uric.html
+    .add(b'!')
+    .add(b'#')
+    .add(b'$')
+    .add(b'&')
+    .add(b'\'')
+    .add(b'(')
+    .add(b')')
+    .add(b'*')
+    .add(b'+')
+    .add(b',')
+    .add(b'/')
+    .add(b':')
+    .add(b';')
+    .add(b'=')
+    .add(b'?')
+    .add(b'@')
+    .add(b'[')
+    .add(b']');
   let encoded_subject = utf8_percent_encode(&subject, FRAGMENT).to_string();
   let quety = format!("PREFIX schema: <http://schema.org/>PREFIX imas: <https://sparql.crssnky.xyz/imasrdf/RDFs/detail/>SELECT * WHERE {{ imas:{} ?n ?o;}}order by (?n)", encoded_subject);
   let encoded_query = form_urlencoded::Serializer::new(String::new())
@@ -79,29 +96,35 @@ fn get_data(subject: String) -> Template {
   if res.ok() {
     let json_str = res.into_string().unwrap();
     let res_json: Response = serde_json::from_str(&json_str).unwrap();
-    let mut json = res_json.results.bindings;
-    let json_num = json.len();
-    if json_num > 0 {
-      for data in &mut json {
-        match &*(data.n.value) {
-          "http://schema.org/memberOf" => {
-            data.o.value = percent_decode(data.o.value.as_bytes())
-              .decode_utf8()
-              .unwrap()
-              .to_string();
-          }
-          "http://schema.org/owns" => {
-            data.o.value = percent_decode(data.o.value.as_bytes())
-              .decode_utf8()
-              .unwrap()
-              .to_string();
-          }
-          _ => (),
+    res_json.results.bindings
+  } else {
+    Vec::new()
+  }
+}
+
+#[get("/<subject>")]
+fn get_data(subject: String) -> Template {
+  let mut json = get_json(&subject);
+  if json.len() > 0 {
+    for data in &mut json {
+      match &*(data.n.value) {
+        "http://schema.org/memberOf" => {
+          data.o.value = percent_decode(data.o.value.as_bytes())
+            .decode_utf8()
+            .unwrap()
+            .to_string();
         }
+        "http://schema.org/owns" => {
+          data.o.value = percent_decode(data.o.value.as_bytes())
+            .decode_utf8()
+            .unwrap()
+            .to_string();
+        }
+        _ => (),
       }
       let content = MessageContent {
         title: subject,
-        num: json_num,
+        num: json.len(),
         json: json,
       };
       return Template::render("detail", &content);
@@ -124,4 +147,34 @@ fn rocket() -> rocket::Rocket {
 
 fn main() {
   rocket().launch();
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+  #[test]
+  fn test_kisaragi_chihaya() {
+    let json = get_json(&("Kisaragi_Chihaya".to_string()));
+    assert_ne!(json.len(), 0);
+  }
+  #[test]
+  fn test_brilliant_diva_plus() {
+    let json = get_json(&("Brilliant_Diva+".to_string()));
+    assert_ne!(json.len(), 0);
+  }
+  #[test]
+  fn test_eternal_harmony() {
+    let json = get_json(&("エターナルハーモニー".to_string()));
+    assert_ne!(json.len(), 0);
+  }
+  #[test]
+  fn test_lantica() {
+    let json = get_json(&("L'Antica".to_string()));
+    assert_ne!(json.len(), 0);
+  }
+  #[test]
+  fn test_unknown() {
+    let json = get_json(&("UnknownUnknownUnknownUnknownUnknown".to_string()));
+    assert_eq!(json.len(), 0);
+  }
 }
