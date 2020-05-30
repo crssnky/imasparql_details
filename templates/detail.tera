@@ -27,7 +27,7 @@
     }
 
     .tabbb {
-      width: 33%;
+      width: 25%;
       text-align: center;
     }
   </style>
@@ -43,6 +43,7 @@
     {% if data.n.value == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" and data.o.value == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Idol"%}
     <li role="presentation" class="tabbb"><a href="#Units" data-toggle="tab">Units</a></li>
     <li role="presentation" class="tabbb"><a href="#Clothes" data-toggle="tab">Clothes</a></li>
+    <li role="presentation" class="tabbb"><a href="#CallTable" data-toggle="tab">CallTable</a></li>
     {% endif %}
     {% endfor%}
   </ul>
@@ -126,6 +127,26 @@
             </td>
           </tr>
           {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-pane" id="CallTable">
+      <table class="table table-hover" style="text-align:center">
+        <tr>
+          <th style="text-align:center">呼び先</th>
+          <th style="text-align:center">呼称</th>
+        </tr>
+        <tbody>
+          {% for value in calltable %}
+          <tr>
+            <td>
+              <p>{{value.callee.value}}</p>
+            </td>
+            <td>
+              <p>{{value.called.value}}</p>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>

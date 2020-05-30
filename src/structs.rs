@@ -36,9 +36,27 @@ pub struct Response {
   pub head: Head,
   pub results: Results,
 }
+#[derive(Debug, Deserialize, Serialize)]
+#[warn(non_camel_case_types)]
+pub struct BindingsCallTable {
+  pub callee: N,
+  pub called: O,
+}
+#[derive(Debug, Deserialize)]
+#[warn(non_camel_case_types)]
+pub struct ResultsCallTable {
+  pub bindings: Vec<BindingsCallTable>,
+}
+#[derive(Debug, Deserialize)]
+#[warn(non_camel_case_types)]
+pub struct ResponseCallTable {
+  pub head: Head,
+  pub results: ResultsCallTable,
+}
 #[derive(Serialize)]
 pub struct MessageContent {
   pub title: String,
   pub num: usize,
   pub json: Vec<Bindings>,
+  pub calltable: Vec<BindingsCallTable>,
 }
