@@ -2,57 +2,16 @@
 
 #[macro_use]
 extern crate rocket;
-extern crate rocket_contrib;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
+extern crate imasparql_details as details;
 extern crate percent_encoding;
-extern crate serde_json;
+extern crate rocket_contrib;
 extern crate ureq;
 extern crate url;
+use details::structs::{Bindings, MessageContent, Response};
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use rocket::Request;
 use rocket_contrib::templates::Template;
 use url::form_urlencoded;
-
-#[derive(Debug, Deserialize, Serialize)]
-struct N {
-  r#type: String,
-  value: String,
-}
-#[derive(Debug, Deserialize, Serialize)]
-struct O {
-  r#type: String,
-  #[serde(default)]
-  datatype: String,
-  #[serde(default, rename = "xml:lang")]
-  xml_lang: String,
-  value: String,
-}
-#[derive(Debug, Deserialize, Serialize)]
-struct Bindings {
-  n: N,
-  o: O,
-}
-#[derive(Debug, Deserialize)]
-struct Results {
-  bindings: Vec<Bindings>,
-}
-#[derive(Debug, Deserialize)]
-struct Head {
-  vars: Vec<String>,
-}
-#[derive(Debug, Deserialize)]
-struct Response {
-  head: Head,
-  results: Results,
-}
-#[derive(Serialize)]
-struct MessageContent {
-  title: String,
-  num: usize,
-  json: Vec<Bindings>,
-}
 
 #[catch(404)]
 fn not_found(_req: &Request) -> String {
