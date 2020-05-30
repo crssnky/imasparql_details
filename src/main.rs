@@ -20,6 +20,7 @@ fn not_found(_req: &Request) -> String {
 
 fn get_profile_json(subject: &String) -> Vec<Bindings> {
   const FRAGMENT: &AsciiSet = &CONTROLS // http://www.asahi-net.or.jp/~ax2s-kmtn/ref/uric.html
+    .add(b' ')
     .add(b'!')
     .add(b'#')
     .add(b'$')
@@ -193,6 +194,11 @@ mod test {
   #[test]
   fn test_lantica() {
     let json = get_profile_json(&("L'Antica".to_string()));
+    assert_ne!(json.len(), 0);
+  }
+  #[test]
+  fn test_sleeping_beauty() {
+    let json = get_profile_json(&("SLEEPING BEAUTY".to_string()));
     assert_ne!(json.len(), 0);
   }
   #[test]
