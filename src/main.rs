@@ -131,6 +131,10 @@ fn get_data(subject: String) -> Template {
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" => {
           if data.o.value
             == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Idol".to_string()
+            || data.o.value
+              == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Staff".to_string()
+            || data.o.value
+              == "https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#Idol_1st".to_string()
           {
             is_idol = true;
           }
