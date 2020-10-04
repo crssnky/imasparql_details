@@ -5,14 +5,14 @@ authors = ["jon"]
 edition = "2018"
 
 [dependencies]
-rocket = "0.4.4"
-rocket_codegen = "0.4.4"
+rocket = "0.4.5"
+rocket_codegen = "0.4.5"
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
 ureq = { version = "*", features = ["json"] }
-url = "2.1.0"
-percent-encoding = "2.1.0"
+url = "*"
+percent-encoding = "*"
 
 [dependencies.rocket_contrib]
 version = "*"
