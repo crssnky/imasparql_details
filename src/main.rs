@@ -1,20 +1,17 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 extern crate imasparql_details as details;
 extern crate percent_encoding;
-extern crate rocket_contrib;
 extern crate ureq;
 extern crate url;
 use details::structs::{Bindings, BindingsCallTable, MessageContent, Response, ResponseCallTable};
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use rocket::Request;
-use rocket_contrib::templates::Template;
+use rocket_dyn_templates::Template;
 use url::form_urlencoded;
 
 #[catch(404)]
-fn not_found(_req: &Request) -> String {
+fn not_found(_req: &Request<'_>) -> String {
   format!("No result: ")
 }
 
@@ -51,9 +48,7 @@ fn get_profile_json(subject: &String) -> Vec<Bindings> {
     encoded_query
   );
   println!("encoded: {}", &encoded_subject);
-  let res = ureq::get(&base_url).call();
-
-  if res.ok() {
+  if let Ok(res) = ureq::get(&base_url).call() {
     let json_str = res.into_string().unwrap();
     let res_json: Response = serde_json::from_str(&json_str).unwrap();
     res_json.results.bindings
@@ -97,9 +92,7 @@ fn get_calltable_json(subject: &String) -> Vec<BindingsCallTable> {
       encoded_query
     );
     println!("encoded: {}", &encoded_subject);
-    let res = ureq::get(&base_url).call();
-
-    if res.ok() {
+    if let Ok(res) = ureq::get(&base_url).call() {
       let json_str = res.into_string().unwrap();
       let res_json: ResponseCallTable = serde_json::from_str(&json_str).unwrap();
       res_json.results.bindings
@@ -161,15 +154,17 @@ fn get_data(subject: String) -> Template {
   Template::render("error", &content)
 }
 
-fn rocket() -> rocket::Rocket {
-  rocket::ignite()
+fn rocket() -> rocket::Rocket<rocket::Build> {
+  rocket::build()
     .mount("/", routes![get_data])
     .attach(Template::fairing())
-    .register(catchers![not_found])
+    .register("/", catchers![not_found])
 }
 
-fn main() {
-  rocket().launch();
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
+  rocket().launch().await?;
+  Ok(())
 }
 
 #[cfg(test)]

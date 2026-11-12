@@ -1,20 +1,15 @@
 [package]
 name = "imasparql_details"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["jon"]
 edition = "2018"
 
 [dependencies]
-rocket = "0.4.5"
-rocket_codegen = "0.4.5"
+rocket = "0.5.1"
+rocket_dyn_templates = { version = "0.2.0", features = ["tera"] }
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
-ureq = { version = "*", features = ["json"] }
+ureq = { version = "2", features = ["json"] }
 url = "*"
 percent-encoding = "*"
-
-[dependencies.rocket_contrib]
-version = "*"
-default-features = false
-features = ["tera_templates"]
